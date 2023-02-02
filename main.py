@@ -6,9 +6,9 @@ CLIENT_PORT = 80
 BACKLOG = 1
 MAX_RECEIVE = 4096
 
-REPLACE = {
-  b'Stockholm': b'Linkoping',
-  b'Smiley': b'Trolly'
+REPLACE_LIST = {
+  'Stockholm': 'Linköping',
+  'Smiley': 'Trolly'
 }
 
 # Create server socket
@@ -81,7 +81,11 @@ while True:
   # Modify response
   modified_response = response
   
-  for key, value in REPLACE.items():
+  for key, value in REPLACE_LIST.items():
+    # Encode strings
+    key = bytes(key, 'utf-8')
+    value = bytes(value, 'utf-8')
+    
     if('text/html' in content_type):
       # To replace in text but not in HTML attributes: (?<=>)[^<]+
       modified_response = re.sub(rb'(?<=>)[^<]+', lambda match: match.group().replace(key, value), modified_response)
