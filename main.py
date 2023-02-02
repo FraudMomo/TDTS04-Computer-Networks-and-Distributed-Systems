@@ -5,7 +5,7 @@ import re
 SERVER_PORT = 12000
 CLIENT_PORT = 80
 BACKLOG = 1
-MAX_RECEIVE = 1024
+MAX_RECEIVE = 63888
 
 REPLACE = {
   b'Stockholm': b'Linkoping',
@@ -31,6 +31,7 @@ while True:
   # Extract host from request
   try:
     host = request.split(b'Host: ')[1].split(b'\r\n')[0].decode()
+    print('Host: ', host)
   except IndexError:
     print('Invalid request')
     connection_socket.close()
@@ -77,10 +78,13 @@ while True:
   modified_response = response
   
   for key, value in REPLACE.items():
-    # To replace in text but not in HTML attributes: (?<=>)[^<]+
-    modified_response = re.sub(rb'(?<=>)[^<]+', lambda match: match.group().replace(key, value), modified_response)
-    # To replace in alt HTML attribute (?<=(alt="))[^"]+
-    modified_response = re.sub(rb'(?<=(alt="))[^"]+', lambda match: match.group().replace(key, value), modified_response)
+    if('text/html' in content_type):
+      # To replace in text but not in HTML attributes: (?<=>)[^<]+
+      modified_response = re.sub(rb'(?<=>)[^<]+', lambda match: match.group().replace(key, value), modified_response)
+      # To replace in alt HTML attribute (?<=(alt="))[^"]+
+      modified_response = re.sub(rb'(?<=(alt="))[^"]+', lambda match: match.group().replace(key, value), modified_response)
+    elif('text/plain' in content_type):
+      modified_response = modified_response.replace(key, value)
   
   
   # Send back to client
