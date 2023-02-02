@@ -1,5 +1,4 @@
-import socket
-import re
+import socket, re
 
 # Constants
 SERVER_PORT = 12000
@@ -32,6 +31,9 @@ while True:
   try:
     host = request.split(b'Host: ')[1].split(b'\r\n')[0].decode()
     print('Host: ', host)
+    # Extract url from request
+    url = request.split(b' ')[1].decode()
+    print('URL: ', url)
   except IndexError:
     print('Invalid request')
     connection_socket.close()
@@ -51,13 +53,13 @@ while True:
     response += data
   client_socket.close()
 
-  # Loading times can be imrpoved by using threading, https://www.geeksforgeeks.org/socket-programming-multi-threading-python/
+  # Loading times can be imrpoved by using multithreading, https://www.geeksforgeeks.org/socket-programming-multi-threading-python/
 
   # Get status code
   status_code = response.split(b'HTTP/1.1 ')[1].split(b' ')[0].decode()
   print('Status code: ', status_code)
 
-  if status_code == '404' or status_code == '304' or status_code == '302':
+  if status_code in ['404', '304', '302']:
     connection_socket.send(response)
     connection_socket.close()
     continue
@@ -71,6 +73,8 @@ while True:
     if(response.split(b'\r\n\r\n')[1] == open('smiley.jpg', 'rb').read()):
       print('Image encoded data matches smiley.jpg')
       response = response.replace(response.split(b'\r\n\r\n')[1], open('trolly.jpg', 'rb').read())
+      # Replace content-length with new length
+      response = response.replace(response.split(b'Content-Length: ')[1].split(b'\r\n')[0], str(len(response.split(b'\r\n\r\n')[1])).encode())
     else:
       print('Image encoded data does not match smiley.jpg')
 
@@ -86,9 +90,6 @@ while True:
     elif('text/plain' in content_type):
       modified_response = modified_response.replace(key, value)
   
-  
   # Send back to client
   connection_socket.send(modified_response)
   connection_socket.close()
-
-# Message received:  b'GET http://zebroid.ida.liu.se/fakenews/test1.txt HTTP/1.1\r\nHost: zebroid.ida.liu.se\r\nUser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/109.0\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\r\nAccept-Language: en-US,en;q=0.5\r\nAccept-Encoding: gzip, deflate\r\nConnection: keep-alive\r\nUpgrade-Insecure-Requests: 1\r\n\r\n'
