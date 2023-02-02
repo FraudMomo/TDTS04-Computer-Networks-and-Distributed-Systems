@@ -5,7 +5,7 @@ import re
 SERVER_PORT = 12000
 CLIENT_PORT = 80
 BACKLOG = 1
-MAX_RECEIVE = 63888
+MAX_RECEIVE = 4096
 
 REPLACE = {
   b'Stockholm': b'Linkoping',
